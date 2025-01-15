@@ -10,7 +10,7 @@ class Post extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['title', 'content', 'category_id'];
+    protected $fillable = ['title', 'content', 'category_id', 'is_published', 'scheduled_publish_at'];
 
     public function category()
     {
@@ -20,5 +20,10 @@ class Post extends Model
     public function scopeRecent($query)
     {
         return $query->orderBy('created_at', 'desc');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }

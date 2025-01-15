@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Comment;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,36 @@ class PostController extends Controller
         $posts = Post::with('category')->latest()->get();
         return view('posts.index', compact('posts'));
     }
+
+    public function showPosts()
+    {
+        $posts = Post::with(['category', 'comments' => function ($query) {
+            $query->where('is_approved', true);
+        }])->latest()->get();
+
+        return view('home', compact('posts'));
+    }
+
+    /**
+     * Сохраняет новый комментарий.
+     */
+    public function storeComment(Request $request)
+    {
+        $validated = $request->validate([
+            'post_id' => 'required|exists:posts,id',
+            'author' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        \App\Models\Comment::create([
+            'post_id' => $validated['post_id'],
+            'author' => $validated['author'],
+            'content' => $validated['content'],
+        ]);
+
+        return redirect()->route('home')->with('success', 'Ваш комментарий отправлен на модерацию!');
+    }
+
 
     public function create()
     {
@@ -60,4 +91,3 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Пост успешно удалён!');
     }
 }
-
